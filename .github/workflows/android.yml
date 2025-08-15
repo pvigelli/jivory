@@ -16,41 +16,31 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget
-          pip install --upgrade pip cython buildozer
+          sudo apt update
+          sudo apt install -y python3-pip openjdk-17-jdk unzip
+          pip install --upgrade pip
+          pip install buildozer cython
 
-      - name: Install Java
+      - name: Install Android SDK
         run: |
-          sudo apt-get install -y openjdk-17-jdk
+          mkdir -p $HOME/Android/Sdk/cmdline-tools
+          cd $HOME/Android/Sdk/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
+          yes | $HOME/Android/Sdk/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/Android/Sdk --licenses
+          yes | $HOME/Android/Sdk/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/Android/Sdk \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;34.0.0" \
+            "cmdline-tools;latest"
 
-      - name: Install Android SDK Command-line Tools
+      - name: Build APK
         run: |
-          ANDROID_HOME=$HOME/Android/Sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip commandlinetools-linux-11076708_latest.zip
-          mv cmdline-tools latest
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;latest"
-
-      - name: Create default buildozer.spec if missing
-        run: |
-          if [ ! -f buildozer.spec ]; then
-            echo "buildozer.spec non trovato, lo creo..."
-            buildozer init
-          fi
-
-      - name: Build with Buildozer
-        run: |
-          buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Jivory-APK
-          path: bin/*.apk
+          export PATH=$PATH:$HOME/Android/Sdk/platform-tools
+          export ANDROIDSDK=$HOME/Android/Sdk
+          export ANDROIDNDK=$HOME/.buildozer/android/platform/android-ndk-r25b
+          buildozer android debug
