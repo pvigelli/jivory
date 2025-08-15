@@ -35,4 +35,30 @@ jobs:
         run: |
           # Scarica cmdline-tools direttamente in tools
           mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools"
-          cd "$HOME
+          cd "$HOME/.buildozer/android/platform/android-sdk/tools"
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          rm -f cmdline-tools.zip
+          mv cmdline-tools/* ./
+          rmdir cmdline-tools || true
+
+          # Aggiungi tools/bin e platform-tools al PATH
+          export PATH="$HOME/.buildozer/android/platform/android-sdk/tools/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH"
+
+          # Accetta tutte le licenze
+          yes | sdkmanager --licenses || true
+
+          # Installa piattaforme e build-tools
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "build-tools;34.0.0"
+
+      - name: Build debug APK
+        run: |
+          export PATH="$HOME/.buildozer/android/platform/android-sdk/tools/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH"
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jivory-APK
+          path: bin/*.apk
+          retention-days: 30
