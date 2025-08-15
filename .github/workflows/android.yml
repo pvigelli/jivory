@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - name: Checkout repository
@@ -21,19 +18,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip python3-setuptools python3-wheel \
-            unzip wget git zip \
-            openjdk-17-jdk \
-            libncurses5 libtinfo5 \
-            libffi-dev libssl-dev zlib1g-dev
+          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget git zip openjdk-17-jdk libncurses5 libtinfo5
           pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Install Android SDK (cmdline-tools, platform-tools, build-tools)
+      - name: Install Android SDK
         env:
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
@@ -51,28 +43,6 @@ jobs:
             "build-tools;34.0.0"
           mkdir -p "$HOME/.buildozer/android/platform"
           ln -s "$ANDROID_SDK_ROOT" "$HOME/.buildozer/android/platform/android-sdk"
-
-      - name: Ensure buildozer.spec (create if missing)
-        run: |
-          if [ ! -f buildozer.spec ]; then
-cat <<'EOF' > buildozer.spec
-[app]
-title = Jivory
-package.name = jivory
-package.domain = org.jivory
-source.dir = .
-source.include_exts = py,png,jpg,json,kv
-version = 0.1
-requirements = python3,cython,kivy,kivymd
-orientation = portrait
-android.api = 33
-android.minapi = 21
-android.accept_sdk_license = True
-
-[buildozer]
-log_level = 2
-EOF
-          fi
 
       - name: Build debug APK
         env:
