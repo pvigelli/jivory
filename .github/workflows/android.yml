@@ -16,58 +16,39 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            python3-pip \
-            python3-setuptools \
-            python3-wheel \
-            build-essential \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk \
-            libffi-dev \
-            libssl-dev \
-            liblzma-dev \
-            libjpeg-dev \
-            libfreetype6-dev \
-            autoconf \
-            automake \
-            libtool \
-            pkg-config \
-            zlib1g-dev \
-            cython3
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-setuptools python3-wheel
+          pip install --upgrade pip cython buildozer
 
-      - name: Install Buildozer
+      - name: Install Java
         run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+          sudo apt-get install -y openjdk-17-jdk
 
-      - name: Install Android SDK
+      - name: Install Android SDK Command-line Tools
         run: |
-          mkdir -p $HOME/Android/Sdk/cmdline-tools
-          cd $HOME/Android/Sdk/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
-          unzip cmdtools.zip -d latest
-          rm cmdtools.zip
-          yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-          $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+          ANDROID_HOME=$HOME/Android/Sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip commandlinetools-linux-11076708_latest.zip -d latest
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;latest"
 
-      - name: Set environment variables
+      - name: Create default buildozer.spec if missing
         run: |
-          echo "ANDROIDSDK=$HOME/Android/Sdk" >> $GITHUB_ENV
-          echo "ANDROIDNDK=$HOME/.buildozer/android/platform/android-ndk-r25b" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/Android/Sdk/platform-tools:$HOME/Android/Sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
+          if [ ! -f buildozer.spec ]; then
+            echo "buildozer.spec non trovato, lo creo..."
+            buildozer init
+          fi
 
-      - name: Build APK
+      - name: Build with Buildozer
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Jivory-APK
