@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -8,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout repository
@@ -25,40 +29,40 @@ jobs:
             python3-pip python3-setuptools python3-wheel \
             unzip wget git zip \
             openjdk-17-jdk \
-            libncurses5 libtinfo5
+            libncurses5 libtinfo5 \
+            libffi-dev libssl-dev zlib1g-dev
           pip install --upgrade pip
-          pip install buildozer cython kivy kivymd
+          pip install buildozer==1.5.0 cython==0.29.36
 
       - name: Install Android SDK (cmdline-tools, platform-tools, build-tools)
         env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
-          # cartella SDK locale al workspace
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          cd "$ANDROID_HOME/cmdline-tools"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          cd "$ANDROID_SDK_ROOT/cmdline-tools"
 
-          # scarica i command line tools ufficiali
+          # Scarica i Command Line Tools ufficiali e crea la struttura .../cmdline-tools/latest/...
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip
-          # struttura corretta: .../cmdline-tools/latest/bin/sdkmanager
-          mv cmdline-tools latest
           rm -f cmdline-tools.zip
+          mv cmdline-tools latest
 
-          # accetta licenze e installa pacchetti necessari (aidl è nei build-tools)
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses <<< "y"
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+          # Accetta licenze e installa i pacchetti necessari (aidl è nei build-tools)
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
             "platform-tools" \
             "platforms;android-33" \
-            "build-tools;33.0.2"
+            "build-tools;33.0.2" \
+            "build-tools;34.0.0"
 
-          # crea SYMLINK verso il percorso che usa Buildozer internamente
+          # Symlink verso il percorso che Buildozer usa internamente
           mkdir -p "$HOME/.buildozer/android/platform"
-          ln -s "$ANDROID_HOME" "$HOME/.buildozer/android/platform/android-sdk"
+          ln -s "$ANDROID_SDK_ROOT" "$HOME/.buildozer/android/platform/android-sdk"
 
-      - name: Ensure/Write minimal buildozer.spec
+      - name: Ensure buildozer.spec (create if missing)
         run: |
-          # Rigenero un buildozer.spec minimale e valido per evitare errori di configurazione
-          cat > buildozer.spec << 'EOF'
+          if [ ! -f buildozer.spec ]; then
+            cat > buildozer.spec <<'EOF'
 [app]
 title = Jivory
 package.name = jivory
@@ -75,13 +79,14 @@ android.accept_sdk_license = True
 [buildozer]
 log_level = 2
 EOF
+          fi
 
-      - name: Build with Buildozer (debug APK)
+      - name: Build debug APK
         env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
           ANDROIDSDK: ${{ github.workspace }}/android-sdk
-          PATH: ${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ env.PATH }}
         run: |
+          export PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
           buildozer -v android debug
 
       - name: Upload APK
