@@ -39,29 +39,23 @@ jobs:
         run: |
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
           cd "$ANDROID_SDK_ROOT/cmdline-tools"
-
-          # Scarica i Command Line Tools ufficiali
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip
           rm -f cmdline-tools.zip
           mv cmdline-tools latest
-
-          # Accetta licenze e installa pacchetti (aidl è nei build-tools)
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.2" \
             "build-tools;34.0.0"
-
-          # Symlink verso il percorso che Buildozer usa internamente
           mkdir -p "$HOME/.buildozer/android/platform"
           ln -s "$ANDROID_SDK_ROOT" "$HOME/.buildozer/android/platform/android-sdk"
 
       - name: Ensure buildozer.spec (create if missing)
         run: |
           if [ ! -f buildozer.spec ]; then
-cat > buildozer.spec <<'EOF'
+cat <<'EOF' > buildozer.spec
 [app]
 title = Jivory
 package.name = jivory
