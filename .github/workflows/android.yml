@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout repository
@@ -21,11 +24,12 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget git zip openjdk-17-jdk libncurses5 libtinfo5
+          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget git zip openjdk-17-jdk \
+            libncurses-dev libtinfo-dev libffi-dev libssl-dev zlib1g-dev
           pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Install Android SDK
+      - name: Install Android SDK (cmdline-tools, platform-tools, build-tools)
         env:
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
