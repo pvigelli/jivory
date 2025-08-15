@@ -33,40 +33,6 @@ jobs:
         env:
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          cd "$ANDROID_SDK_ROOT/cmdline-tools"
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          rm -f cmdline-tools.zip
-          mv cmdline-tools latest
-
-          # Accetta tutte le licenze
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
-
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "build-tools;34.0.0"
-
-          # Copia sdkmanager e avdmanager nella cartella che Buildozer si aspetta
-          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools/bin"
-          cp "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
-             "$HOME/.buildozer/android/platform/android-sdk/tools/bin/"
-          cp "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" \
-             "$HOME/.buildozer/android/platform/android-sdk/tools/bin/"
-
-      - name: Build debug APK
-        env:
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-          ANDROIDSDK: ${{ github.workspace }}/android-sdk
-        run: |
-          export PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Jivory-APK
-          path: bin/*.apk
-          retention-days: 30
+          # Scarica cmdline-tools direttamente in tools
+          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools"
+          cd "$HOME
