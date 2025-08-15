@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools python3-wheel
+          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget
           pip install --upgrade pip cython buildozer
 
       - name: Install Java
@@ -34,7 +34,8 @@ jobs:
           mkdir -p $ANDROID_HOME/cmdline-tools
           cd $ANDROID_HOME/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip commandlinetools-linux-11076708_latest.zip -d latest
+          unzip commandlinetools-linux-11076708_latest.zip
+          mv cmdline-tools latest
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;latest"
 
       - name: Create default buildozer.spec if missing
