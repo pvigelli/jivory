@@ -40,7 +40,7 @@ jobs:
           rm -f cmdline-tools.zip
           mv cmdline-tools latest
 
-          # Accetta tutte le licenze (Broken pipe gestito)
+          # Accetta tutte le licenze
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
 
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
@@ -49,9 +49,12 @@ jobs:
             "build-tools;33.0.2" \
             "build-tools;34.0.0"
 
-          # Symlink per Buildozer (Buildozer cerca sdkmanager in tools/bin)
-          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools"
-          ln -s "$ANDROID_SDK_ROOT/cmdline-tools/latest" "$HOME/.buildozer/android/platform/android-sdk/tools/latest"
+          # Copia sdkmanager e avdmanager nella cartella che Buildozer si aspetta
+          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools/bin"
+          cp "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+             "$HOME/.buildozer/android/platform/android-sdk/tools/bin/"
+          cp "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" \
+             "$HOME/.buildozer/android/platform/android-sdk/tools/bin/"
 
       - name: Build debug APK
         env:
