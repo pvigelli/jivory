@@ -47,7 +47,3 @@ jobs:
         name: Jivory-APK
         path: bin/*.apk
         retention-days: 30
-
-      with:
-        name: Jivory-APK
-        path: bin/*.apk
