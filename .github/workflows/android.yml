@@ -26,6 +26,18 @@ jobs:
         pip install cython
         pip install buildozer kivy kivymd
 
+    - name: Install Android SDK & Build Tools
+      run: |
+        sudo apt update
+        sudo apt install -y unzip wget
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip cmdline-tools.zip -d $HOME/cmdline-tools
+        export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+        mv $HOME/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2" "extras;google;m2repository"
+        export PATH=$ANDROID_SDK_ROOT/platform-tools:$PATH
+
     - name: Build APK
       run: |
         # Crea buildozer.spec minimale
