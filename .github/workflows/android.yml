@@ -44,23 +44,23 @@ jobs:
           mv cmdline-tools/* ./
           rmdir cmdline-tools || true
 
-          # Aggiorna PATH
-          export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$SDK_ROOT/platform-tools:$PATH"
+          # Crea symlink tools -> cmdline-tools/latest (Buildozer lo richiede)
+          ln -s "$SDK_ROOT/cmdline-tools/latest" "$SDK_ROOT/tools"
 
-          # Accetta tutte le licenze
+          # Aggiorna PATH
+          export PATH="$SDK_ROOT/tools/bin:$SDK_ROOT/platform-tools:$PATH"
+
+          # Accetta licenze
           yes | sdkmanager --sdk_root="$SDK_ROOT" --licenses || true
 
           # Installa piattaforme e build-tools
           sdkmanager --sdk_root="$SDK_ROOT" \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "build-tools;34.0.0"
+            "platform-tools" "platforms;android-33" "build-tools;33.0.2" "build-tools;34.0.0"
 
       - name: Build debug APK
         run: |
           SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
-          export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$SDK_ROOT/platform-tools:$PATH"
+          export PATH="$SDK_ROOT/tools/bin:$SDK_ROOT/platform-tools:$PATH"
           buildozer -v android debug
 
       - name: Upload APK
