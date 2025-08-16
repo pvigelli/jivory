@@ -43,7 +43,7 @@ jobs:
           export PATH="$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH"
 
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.3"
 
       - name: Build debug APK
         run: |
@@ -55,6 +55,7 @@ jobs:
           unset ANDROID_SDK_ROOT
 
           SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
           export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$SDK_ROOT/platform-tools:$PATH"
 
           buildozer -v android debug
