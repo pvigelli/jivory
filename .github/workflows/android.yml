@@ -4,16 +4,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -21,51 +19,48 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip python3-setuptools python3-wheel unzip wget git zip openjdk-17-jdk \
-            libncurses-dev libtinfo-dev libffi-dev libssl-dev zlib1g-dev
+          sudo apt-get install -y \
+            unzip zip openjdk-17-jdk \
+            libffi-dev libssl-dev \
+            libgl1-mesa-dev libgles2-mesa-dev \
+            python3-pip python3-setuptools python3-wheel \
+            build-essential git
           pip install --upgrade pip
-          pip install buildozer==1.5.0 cython==0.29.36
+          pip install buildozer cython
 
-      - name: Install Android SDK (cmdline-tools, platform-tools, build-tools)
-        env:
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      - name: Install Android SDK & cmdline-tools
         run: |
-          SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
-          mkdir -p "$SDK_ROOT/cmdline-tools/latest"
-          cd "$SDK_ROOT/cmdline-tools/latest"
-
-          # Scarica cmdline-tools
+          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools"
+          cd "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools"
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip
           rm -f cmdline-tools.zip
-          mv cmdline-tools/* ./
-          rmdir cmdline-tools || true
+          mv cmdline-tools latest
 
-          # Crea symlink tools -> cmdline-tools/latest (Buildozer lo richiede)
-          ln -s "$SDK_ROOT/cmdline-tools/latest" "$SDK_ROOT/tools"
+          export PATH="$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH"
 
-          # Aggiorna PATH
-          export PATH="$SDK_ROOT/tools/bin:$SDK_ROOT/platform-tools:$PATH"
-
-          # Accetta licenze
-          yes | sdkmanager --sdk_root="$SDK_ROOT" --licenses || true
-
-          # Installa piattaforme e build-tools
-          sdkmanager --sdk_root="$SDK_ROOT" \
-            "platform-tools" "platforms;android-33" "build-tools;33.0.2" "build-tools;34.0.0"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Build debug APK
         run: |
+          # Reset variabili Android per evitare conflitti
+          unset ANDROID_NDK_HOME
+          unset ANDROID_NDK_ROOT
+          unset ANDROID_NDK
+          unset ANDROID_HOME
+          unset ANDROID_SDK_ROOT
+
           SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
-          export PATH="$SDK_ROOT/tools/bin:$SDK_ROOT/platform-tools:$PATH"
+          export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$SDK_ROOT/platform-tools:$PATH"
+
           buildozer -v android debug
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Jivory-APK
+          name: app-debug.apk
           path: bin/*.apk
-          retention-days: 30
