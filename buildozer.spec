@@ -13,3 +13,7 @@ android.accept_sdk_license = True
 
 [buildozer]
 log_level = 2
+
+[android]
+android.sdk_path = $HOME/.buildozer/android/platform/android-sdk
+android.ndk_path = $HOME/.buildozer/android/platform/android-ndk-r25b
