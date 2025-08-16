@@ -16,4 +16,4 @@ log_level = 2
 
 [android]
 android.sdk_path = $HOME/.buildozer/android/platform/android-sdk
-android.ndk_path = $HOME/.buildozer/android/platform/android-ndk-r25b
+android.ndk_path = $HOME/.buildozer/android/platform/android-sdk/ndk/25.1.8937393
