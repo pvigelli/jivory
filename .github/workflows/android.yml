@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -28,7 +28,7 @@ jobs:
             libgl1-mesa-dev libgles2-mesa-dev \
             build-essential git
 
-      - name: Install Python deps
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
           pip install buildozer cython
@@ -39,7 +39,7 @@ jobs:
           mkdir -p "$SDK/cmdline-tools"
           cd "$SDK/cmdline-tools"
 
-          # scarico cmdline-tools
+          # scarico commandline tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-*.zip
           rm commandlinetools-linux-*.zip
