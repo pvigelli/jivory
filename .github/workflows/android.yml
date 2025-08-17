@@ -19,16 +19,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            ~/.buildozer
-          key: buildozer-${{ runner.os }}-${{ hashFiles('**/buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -55,8 +45,14 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
+      - name: Fix sdkmanager path for Buildozer
+        run: |
+          mkdir -p "$HOME/.buildozer/android/platform/android-sdk/tools/bin"
+          ln -s "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager" "$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager"
+
       - name: Build debug APK
         run: |
+          # Reset variabili Android per evitare conflitti
           unset ANDROID_NDK_HOME
           unset ANDROID_NDK_ROOT
           unset ANDROID_NDK
@@ -64,6 +60,7 @@ jobs:
           unset ANDROID_SDK_ROOT
 
           SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
           export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$SDK_ROOT/platform-tools:$PATH"
 
           buildozer -v android debug
