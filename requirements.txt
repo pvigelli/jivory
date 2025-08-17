@@ -1,2 +1,3 @@
-kivy==2.2.1
-kivyMD==1.1.1
+kivy
+kivymd
+cython
