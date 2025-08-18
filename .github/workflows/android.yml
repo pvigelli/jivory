@@ -39,12 +39,13 @@ jobs:
           curl -Lo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools.zip
           rm commandlinetools.zip
-          mkdir -p latest
-          mv cmdline-tools/* latest/
+          rm -rf latest
+          mv cmdline-tools latest
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+
 
       - name: Build APK
         env:
