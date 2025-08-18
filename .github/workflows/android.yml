@@ -11,63 +11,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      # Cache Buildozer
-      - name: Cache buildozer
-        uses: actions/cache@v3
-        with:
-          path: |
-            .buildozer
-            ~/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      # Cache Android SDK
-      - name: Cache Android SDK
-        uses: actions/cache@v3
-        with:
-          path: /usr/local/lib/android/sdk
-          key: ${{ runner.os }}-android-sdk
-          restore-keys: |
-            ${{ runner.os }}-android-
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk \
-            pkg-config libffi-dev libssl-dev \
-            build-essential autoconf automake \
-            cmake libtool
+          sudo apt-get install -y git unzip curl openjdk-17-jdk \
+            build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
+          git --version   # ✅ verifica che git sia disponibile
 
-      - name: Upgrade pip & install buildozer
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pip dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install buildozer==1.5.0 Cython==0.29.36
+          pip install buildozer cython
 
-      - name: Force NDK r25b only
+      - name: Setup Android SDK
+        run: |
+          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          cd /usr/local/lib/android/sdk/cmdline-tools
+          curl -Lo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools.zip
+          rm commandlinetools.zip
+          mkdir -p latest
+          rsync -a cmdline-tools/ latest/ || true
+
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+          
+      - name: Force NDK r25b
         run: |
           rm -rf /usr/local/lib/android/sdk/ndk/*
-          echo "Pulite versioni NDK preinstallate, useremo solo r25b di buildozer"
-
+          echo "Usiamo solo NDK r25b"
+          
       - name: Build with Buildozer
         run: |
-          export ANDROIDSDK=$HOME/.buildozer/android/platform/android-sdk
-          export ANDROIDNDK=$HOME/.buildozer/android/platform/android-ndk-r25b
-          export ANDROIDAPI=33
-          export ANDROIDMINAPI=21
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          git --version   # ✅ verifica
           buildozer -v android debug
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: bin/*.apk
