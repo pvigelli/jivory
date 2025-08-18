@@ -32,20 +32,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Cache Buildozer
+      - name: Cache Buildozer P4A
         uses: actions/cache@v3
         with:
-          path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          path: |
+            ~/.buildozer/android/platform
+          key: ${{ runner.os }}-buildozer-platform-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-
+            ${{ runner.os }}-buildozer-platform-
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git unzip curl openjdk-17-jdk \
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
-          git --version   # ✅ verifica che git sia disponibile
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,7 +57,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK & NDK
         run: |
           mkdir -p /usr/local/lib/android/sdk/cmdline-tools
           cd /usr/local/lib/android/sdk/cmdline-tools
@@ -68,16 +68,17 @@ jobs:
           rsync -a cmdline-tools/ latest/ || true
 
           export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
 
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;21.4.7075529"
 
       - name: Build with Buildozer
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/21.4.7075529
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          git --version   # ✅ verifica
           buildozer -v android debug
 
       - name: Upload APK artifact
