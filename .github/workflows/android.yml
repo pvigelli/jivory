@@ -19,7 +19,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git unzip curl openjdk-17-jdk \
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
-          git --version   # 👈 verifica che git sia disponibile
+          git --version   # ✅ verifica che git sia disponibile
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,14 +40,16 @@ jobs:
           rm commandlinetools.zip
           mkdir -p latest
           rsync -a cmdline-tools/ latest/ || true
+
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
 
       - name: Build with Buildozer
         run: |
-          git --version   # 👈 seconda verifica
+          git --version   # ✅ seconda verifica
           buildozer android debug
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
