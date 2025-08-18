@@ -19,7 +19,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git unzip curl openjdk-17-jdk \
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
-          git --version   # ✅ verifica che git sia disponibile
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,6 +29,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install buildozer cython
+
+      - name: Cache Buildozer .buildozer directory
+        uses: actions/cache@v3
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
       - name: Setup Android SDK
         run: |
@@ -45,18 +52,12 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
 
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
-          
-      - name: Force NDK r25b
-        run: |
-          rm -rf /usr/local/lib/android/sdk/ndk/*
-          echo "Usiamo solo NDK r25b"
-          
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
       - name: Build with Buildozer
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          git --version   # ✅ verifica
           buildozer -v android debug
 
       - name: Upload APK artifact
@@ -64,3 +65,4 @@ jobs:
         with:
           name: android-apk
           path: bin/*.apk
+
