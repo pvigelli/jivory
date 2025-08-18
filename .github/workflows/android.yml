@@ -49,11 +49,10 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          git --version   # ✅ seconda verifica
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          git --version   # ✅ verifica
           buildozer android debug
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          PATH: /usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
