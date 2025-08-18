@@ -25,5 +25,5 @@ warn_on_root = 1
 
 [android]
 # Percorsi collegati alle variabili d'ambiente del workflow
-android.sdk_path = $ANDROIDSDK
-android.ndk_path = $ANDROIDNDK
+android.sdk_path = /usr/local/lib/android/sdk
+android.ndk_path = /usr/local/lib/android/sdk/ndk
