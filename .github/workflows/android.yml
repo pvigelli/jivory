@@ -43,8 +43,9 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git unzip curl tar build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
-          git --version
+          sudo apt-get install -y git unzip curl openjdk-17-jdk \
+            build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev tar
+          git --version   # verifica git
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,8 +57,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK & NDK
         run: |
+          # SDK
           mkdir -p /usr/local/lib/android/sdk/cmdline-tools
           cd /usr/local/lib/android/sdk/cmdline-tools
           curl -Lo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
@@ -72,10 +74,18 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
+          # NDK
+          mkdir -p $HOME/.buildozer/android/platform
+          cd $HOME/.buildozer/android/platform
+          curl -Lo android-ndk-r21c.zip https://dl.google.com/android/repository/android-ndk-r21c-linux.zip
+          unzip -q android-ndk-r21c.zip
+          rm android-ndk-r21c.zip
+          export ANDROIDNDK=$HOME/.buildozer/android/platform/android-ndk-r21c
+
       - name: Build with Buildozer
         run: |
           export ANDROIDSDK=/usr/local/lib/android/sdk
-          export ANDROIDNDK=/usr/local/lib/android/sdk/ndk/21.4.7075529
+          export ANDROIDNDK=$HOME/.buildozer/android/platform/android-ndk-r21c
           export ANDROID_HOME=$ANDROIDSDK
           export PATH=$ANDROIDSDK/cmdline-tools/latest/bin:$ANDROIDSDK/platform-tools:$PATH
           buildozer -v android debug
