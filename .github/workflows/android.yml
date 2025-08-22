@@ -7,23 +7,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest   # Ensure this is present and not overridden by 'container:'
-    # If you must use a container, add:
-    container:
-      image: ubuntu:22.04   # Or another image with apt-get preinstalled
+    runs-on: ubuntu-latest
+
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_NDK_ROOT: $HOME/android-ndk-r25b
       PATH: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
 
     steps:
-      - name: Install tar (if missing)
-        run: apt-get update && apt-get install -y tar
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: |
-          apt-get update
-          apt-get install -y git unzip curl tar openjdk-11-jdk \
+          sudo apt-get update
+          sudo apt-get install -y git unzip curl openjdk-11-jdk \
           build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
 
       - name: Set up Python
