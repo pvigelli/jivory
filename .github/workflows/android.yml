@@ -9,18 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_NDK_ROOT: $HOME/android-ndk-r25b
+      PATH: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Verify tools
-        run: |
-          git --version
-          tar --version
-          unzip --version
 
       - name: Install system dependencies
         run: |
@@ -29,6 +25,7 @@ jobs:
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
           git --version
           tar --version
+          unzip --version
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,13 +39,13 @@ jobs:
 
       - name: Download and setup Android NDK r25b
         run: |
-          mkdir -p $HOME/android-ndk-r25b
+          mkdir -p $ANDROID_NDK_ROOT
           curl -Lo ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
           unzip -q ndk.zip -d $HOME
           rm ndk.zip
-          mv $HOME/android-ndk-r25b-linux $HOME/android-ndk-r25b
+          mv $HOME/android-ndk-r25b $ANDROID_NDK_ROOT
 
-      - name: Setup Android SDK
+      - name: Download and setup Android SDK command-line tools
         run: |
           mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
           curl -Lo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
@@ -61,7 +58,7 @@ jobs:
       - name: Build APK with Buildozer
         run: |
           export ANDROIDSDK=$ANDROID_SDK_ROOT
-          export ANDROIDNDK=$HOME/android-ndk-r25b
+          export ANDROIDNDK=$ANDROID_NDK_ROOT
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           buildozer -v android debug
 
