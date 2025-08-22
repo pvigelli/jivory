@@ -14,14 +14,14 @@ jobs:
       PATH: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
 
     steps:
+      - name: Install tar (if missing)
+        run: sudo apt-get update && sudo apt-get install -y tar    
+
       - name: Checkout code (full clone to avoid tar/unzip REST API issues)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: Install tar (if missing)
-        run: sudo apt-get update && sudo apt-get install -y tar    
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
