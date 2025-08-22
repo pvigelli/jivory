@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest   # Ensure this is present and not overridden by 'container:'
     # If you must use a container, add:
     container:
-      image: ubuntu:latest   # Or another image with apt-get preinstalled
+      image: ubuntu:22.04   # Or another image with apt-get preinstalled
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_NDK_ROOT: $HOME/android-ndk-r25b
