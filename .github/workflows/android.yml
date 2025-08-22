@@ -17,6 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Ensure tar is available
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tar
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -37,8 +42,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git unzip curl tar openjdk-11-jdk \
+          sudo apt-get install -y git unzip curl openjdk-11-jdk \
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
           git --version
 
@@ -59,7 +63,7 @@ jobs:
           curl -Lo ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
           unzip -q ndk.zip -d $HOME
           rm ndk.zip
-          mv $HOME/android-ndk-r25b-linux $ANDROID_NDK_ROOT
+          mv $HOME/android-ndk-r25b $ANDROID_NDK_ROOT
 
       - name: Set up Android SDK
         run: |
