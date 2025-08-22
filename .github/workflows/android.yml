@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-      ANDROID_NDK_ROOT: $HOME/android-ndk-r25b
-      PATH: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+      ANDROID_HOME: /usr/local/lib/android/sdk
 
     steps:
       - name: Checkout code
@@ -24,25 +23,23 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-            
-      - name: Cache Buildozer/NDK
+
+      - name: Cache Buildozer
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.buildozer
-            ${{ env.ANDROID_NDK_ROOT }}
+          path: ~/.buildozer
           key: ${{ runner.os }}-build-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
             ${{ runner.os }}-build-
-            
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git unzip curl tar openjdk-11-jdk \
+          sudo apt-get install -y git unzip curl openjdk-11-jdk \
             build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
           git --version
-          tar --version
-          
+          unzip -v
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -52,36 +49,24 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install buildozer cython
-          
-      - name: Download Android NDK r25b
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ${ANDROID_NDK_ROOT}
-          curl -Lo ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
-          unzip -q ndk.zip -d $HOME
-          rm ndk.zip
-          mv $HOME/android-ndk-r25b $ANDROID_NDK_ROOT
-          
-      - name: Set up Android SDK
+
+      - name: Set up Android SDK + NDK
         run: |
           mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
           curl -Lo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q sdk.zip -d $ANDROID_SDK_ROOT/cmdline-tools/
           mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
           rm sdk.zip
-          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-          sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-          
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393"
+
       - name: Build with Buildozer
         run: |
-          export ANDROIDSDK=$ANDROID_SDK_ROOT
-          export ANDROIDNDK=$ANDROID_NDK_ROOT
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
           buildozer -v android debug
-          
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: bin/*.apk
-
