@@ -18,16 +18,17 @@ android.api = 33
 android.minapi = 21
 android.accept_sdk_license = True
 
-# Specifica il bootstrap stabile (SDL2)
+# Bootstrap stabile
 p4a.bootstrap = sdl2
 p4a.branch = stable
 
 # Architetture supportate
 android.archs = arm64-v8a, armeabi-v7a
 
-# Directory temporanee e storage
-android.ndk = /usr/local/lib/android/sdk/ndk/21.4.7075529
-android.sdk = /usr/local/lib/android/sdk
+# Percorsi SDK/NDK fissi (quelli che GitHub Actions installa con setup-android)
+android.sdk_path = /usr/local/lib/android/sdk
+android.ndk_path = /usr/local/lib/android/sdk/ndk/21.4.7075529
+android.ndk_api = 21
 
 [buildozer]
 log_level = 2
