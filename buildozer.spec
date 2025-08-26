@@ -19,8 +19,8 @@ android.minapi = 21
 android.accept_sdk_license = True
 
 # Forziamo i percorsi SDK/NDK
-android.sdk_path = $HOME/android-sdk
-android.ndk_path = $HOME/android-sdk/ndk/21.4.7075529
+android.sdk_path = /home/runner/android-sdk
+android.ndk_path = /home/runner/android-sdk/ndk/21.4.7075529
 
 # Specifica il bootstrap stabile (SDL2)
 p4a.bootstrap = sdl2
