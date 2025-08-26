@@ -24,6 +24,7 @@ android.ndk_path = /home/runner/android-sdk/ndk/21.4.7075529
 
 # Specifica il bootstrap stabile (SDL2)
 p4a.bootstrap = sdl2
+p4a.source_dir = /home/runner/.buildozer/android/platform/python-for-android
 p4a.branch = stable
 
 # Architetture supportate
