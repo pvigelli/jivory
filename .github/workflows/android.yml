@@ -69,11 +69,7 @@ jobs:
           which sdkmanager
           which python
           python -m pip show buildozer
-          
-      - name: Clean previous build
-        run: |
-          buildozer android clean
-
+        
       - name: Build with Buildozer
         run: |
           export ANDROIDSDK="$ANDROID_SDK_ROOT"
