@@ -7,7 +7,7 @@ source.dir = .
 source.include_exts = py,png,jpg,json,kv
 version = 0.1
 
-# Requisiti: ordinati e completi
+# Requisiti
 requirements = python3,cython,kivy,kivymd,pillow,requests,urllib3,certifi,chardet,idna,setuptools,wheel
 
 # Orientamento
@@ -25,9 +25,9 @@ p4a.branch = stable
 # Architetture supportate
 android.archs = arm64-v8a, armeabi-v7a
 
-# Percorsi SDK/NDK fissi (quelli che GitHub Actions installa con setup-android)
+# Percorsi SDK/NDK (coerenti col workflow)
 android.sdk_path = /usr/local/lib/android/sdk
-android.ndk_path = /usr/local/lib/android/sdk/ndk/21.4.7075529
+android.ndk_path = /home/runner/android-ndk-r25b
 android.ndk_api = 21
 
 [buildozer]
