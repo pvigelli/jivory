@@ -29,7 +29,8 @@ p4a.branch = stable
 # Architetture supportate
 android.archs = arm64-v8a, armeabi-v7a
 
+package_format = apk
+
 [buildozer]
 log_level = 2
 warn_on_root = 1
-
