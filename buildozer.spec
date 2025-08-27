@@ -25,7 +25,7 @@ android.ndk_api = 21
 
 # Specifica il bootstrap stabile (SDL2)
 p4a.bootstrap = sdl2
-p4a.branch = stable
+p4a.branch = master
 
 # Architetture supportate
 android.archs = arm64-v8a, armeabi-v7a
