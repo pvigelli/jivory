@@ -76,6 +76,20 @@ jobs:
         run: |
           sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
           sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager        
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            libffi-dev \
+            zlib1g-dev \
+            libssl-dev \
+            unzip \
+            openjdk-17-jdk
       
       - name: Build with Buildozer
         run: |
