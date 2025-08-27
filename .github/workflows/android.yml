@@ -74,7 +74,7 @@ jobs:
             unzip \
             openjdk-17-jdk
 
-      - name: Workaround: patch missing autoconf macros
+      - name: Workaround patch missing autoconf macros
         run: |
           autoreconf --install --force || true
 
