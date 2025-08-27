@@ -16,8 +16,11 @@ jobs:
       - name: Install base packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y git curl unzip tar openjdk-11-jdk \
+          sudo apt-get install -y git curl unzip tar \
               build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
+          git --version
+          tar --version
+          unzip -v
 
       - name: Set environment variables
         run: |
@@ -59,13 +62,28 @@ jobs:
           pip install "buildozer>=1.5.0,<1.6" cython
           pip install git+https://github.com/kivy/python-for-android.git@master
 
-      - name: Install system dependencies (autotools & libtool)
+      - name: Verify environment
+        run: |
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT"
+          echo "ANDROIDNDK=$ANDROID_NDK_ROOT"
+          echo "PATH=$PATH"
+          which python
+          python -m pip show buildozer
+
+      - name: Symlink sdkmanager (compat workaround)
+        run: |
+          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
+          sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager        
+
+      - name: Install system dependencies (autotools, java17)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
             autoconf \
             automake \
+            autopoint \
+            gettext \
             libtool \
             pkg-config \
             libffi-dev \
@@ -74,9 +92,10 @@ jobs:
             unzip \
             openjdk-17-jdk
 
-      - name: Workaround patch missing autoconf macros
+      - name: Fix autotools macros
         run: |
-          autoreconf --install --force || true
+          autoreconf -fi || true
+          autoupdate || true
 
       - name: Build with Buildozer
         run: |
