@@ -13,16 +13,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build APK with Docker (Buildozer image)
+      - name: Install base packages
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/home/user/app \
-            -w /home/user/app \
-            kivy/buildozer:latest \
-            buildozer -v android debug
+          sudo apt-get update
+          sudo apt-get install -y git curl unzip tar \
+              build-essential libffi-dev libssl-dev libsqlite3-dev \
+              libjpeg-dev zlib1g-dev pkg-config
+          git --version
+          tar --version
+          unzip -v
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Set environment variables
+        run: |
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$HOME/android-ndk-r25b" >> "$GITHUB_ENV"
+          echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "/usr/local/lib/android/sdk/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Install Android SDK commandline-tools
+        run: |
+          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          cd /usr/local/lib/android/sdk/cmdline-tools
+          sudo curl -fL -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          sudo unzip -q -o commandlinetools.zip
+          sudo rm -f commandlinetools.zip
+          [ -d cmdline-tools ] && sudo mv -f cmdline-tools latest || true
+
+      - name: Accept SDK licenses & install platforms/build-tools
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
+            "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+      - name: Install Android NDK r25b
+        run: |
+          cd "$HOME"
+          curl -fL -o ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
+          unzip -q -o ndk.zip
+          rm -f ndk.zip
+          test -f "$HOME/android-ndk-r25b/source.properties"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          name: android-apk
-          path: bin/*.apk
+          python-version: '3.10'
+
+      - name: Install Python tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install "buildozer>=1.5.0,<1.6" cython
+          pip install git+https://github.com/kivy/python-for-android.git@master
+
+      - name: Verify environment
+        run: |
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT"
+          echo "ANDROIDNDK=$ANDROID_NDK_ROOT"
+          echo "PATH=$PATH"
+          which python
+          python -m pip show buildozer
+
+      - name: Symlink sdkmanager (compat workaround)
+        run: |
+          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
+          sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager        
+
+      - name: Install system dependencies (autotools, java17)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            automake \
+            autopoint \
+            gettext \
+            libtool \
+            pkg-config \
+            openjdk-17-jdk
+
+      - name: Fix autotools macros (to prevent LT_SYS_SYMBOL_USCORE error)
+        run: |
+          autoreconf --install --force --verbose || true
+          autoupdate ||
