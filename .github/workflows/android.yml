@@ -18,9 +18,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git curl unzip tar openjdk-11-jdk \
               build-essential libffi-dev libssl-dev libsqlite3-dev libjpeg-dev zlib1g-dev
-          git --version
-          tar --version
-          unzip -v
 
       - name: Set environment variables
         run: |
@@ -42,7 +39,6 @@ jobs:
         run: |
           yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Install Android NDK r25b
         run: |
@@ -63,20 +59,7 @@ jobs:
           pip install "buildozer>=1.5.0,<1.6" cython
           pip install git+https://github.com/kivy/python-for-android.git@master
 
-      - name: Verify environment
-        run: |
-          echo "ANDROIDSDK=$ANDROID_SDK_ROOT"
-          echo "ANDROIDNDK=$ANDROID_NDK_ROOT"
-          echo "PATH=$PATH"
-          ls /usr/local/lib/android/sdk/cmdline-tools/latest/bin/
-          which python
-          python -m pip show buildozer
-          
-      - name: Symlink sdkmanager (compat workaround)
-        run: |
-          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
-          sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager        
-      - name: Install system dependencies
+      - name: Install system dependencies (autotools & libtool)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -90,7 +73,11 @@ jobs:
             libssl-dev \
             unzip \
             openjdk-17-jdk
-      
+
+      - name: Workaround: patch missing autoconf macros
+        run: |
+          autoreconf --install --force || true
+
       - name: Build with Buildozer
         run: |
           export ANDROIDSDK="$ANDROID_SDK_ROOT"
