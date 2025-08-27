@@ -92,4 +92,17 @@ jobs:
       - name: Fix autotools macros (to prevent LT_SYS_SYMBOL_USCORE error)
         run: |
           autoreconf --install --force --verbose || true
-          autoupdate ||
+          autoupdate || true
+
+      - name: Build with Buildozer
+        run: |
+          export ANDROIDSDK="$ANDROID_SDK_ROOT"
+          export ANDROIDNDK="$ANDROID_NDK_ROOT"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          buildozer -v android debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: bin/*.apk
