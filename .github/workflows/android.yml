@@ -93,18 +93,7 @@ jobs:
             zlib1g-dev \
             libssl-dev \
             unzip \
-            openjdk-17-jdk \
-            autotools-dev   # <--- aggiunto qui
-
-      - name: Fix autotools macros (to prevent LT_SYS_SYMBOL_USCORE error)
-        run: |
-          autoreconf --install --force --verbose || true
-          autoupdate || true
-
-      - name: Patch config.sub and config.guess
-        run: |
-          find . -name config.sub -exec cp /usr/share/misc/config.sub {} \;
-          find . -name config.guess -exec cp /usr/share/misc/config.guess {} \;
+            openjdk-17-jdk
 
       - name: Build with Buildozer
         run: |
