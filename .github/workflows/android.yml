@@ -13,12 +13,57 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Cache pip
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Cache .buildozer
+      - name: Cache buildozer
+        uses: actions/cache@v4
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      # Cache Android SDK
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk
+          key: ${{ runner.os }}-androidsdk-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-androidsdk-
+
+      # Cache Android NDK
+      - name: Cache Android NDK
+        uses: actions/cache@v4
+        with:
+          path: ~/android-ndk-r25b
+          key: ${{ runner.os }}-androidndk-r25b
+          restore-keys: |
+            ${{ runner.os }}-androidndk-
+
+      # Cache ccache
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache
+          restore-keys: |
+            ${{ runner.os }}-ccache
+
       - name: Install base packages
         run: |
           sudo apt-get update
           sudo apt-get install -y git curl unzip tar \
               build-essential libffi-dev libssl-dev libsqlite3-dev \
-              libjpeg-dev zlib1g-dev pkg-config
+              libjpeg-dev zlib1g-dev pkg-config ccache
           git --version
           tar --version
           unzip -v
@@ -34,10 +79,12 @@ jobs:
         run: |
           sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
           cd /usr/local/lib/android/sdk/cmdline-tools
-          sudo curl -fL -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          sudo unzip -q -o commandlinetools.zip
-          sudo rm -f commandlinetools.zip
-          [ -d cmdline-tools ] && sudo mv -f cmdline-tools latest || true
+          if [ ! -d "latest" ]; then
+            sudo curl -fL -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            sudo unzip -q -o commandlinetools.zip
+            sudo rm -f commandlinetools.zip
+            [ -d cmdline-tools ] && sudo mv -f cmdline-tools latest || true
+          fi
 
       - name: Accept SDK licenses & install platforms/build-tools
         run: |
@@ -48,9 +95,11 @@ jobs:
       - name: Install Android NDK r25b
         run: |
           cd "$HOME"
-          curl -fL -o ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
-          unzip -q -o ndk.zip
-          rm -f ndk.zip
+          if [ ! -d "android-ndk-r25b" ]; then
+            curl -fL -o ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
+            unzip -q -o ndk.zip
+            rm -f ndk.zip
+          fi
           test -f "$HOME/android-ndk-r25b/source.properties"
 
       - name: Set up Python
@@ -101,10 +150,11 @@ jobs:
           export ANDROIDSDK="$ANDROID_SDK_ROOT"
           export ANDROIDNDK="$ANDROID_NDK_ROOT"
           export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          export USE_CCACHE=1
           buildozer -v android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
+          name: jivory-apk
           path: bin/*.apk
