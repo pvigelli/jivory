@@ -4,9 +4,16 @@ from kivymd.app import MDApp
 import json
 import random
 
-# Carica sfide
-with open("challenges.json", "r") as f:
-    challenges = json.load(f)
+from kivy.resources import resource_find
+
+# Carica sfide in modo sicuro
+try:
+    path = resource_find("challenges.json")
+    with open(path, "r", encoding="utf-8") as f:
+        challenges = json.load(f)
+except Exception as e:
+    print("Errore caricando challenges.json:", e)
+    challenges = [{"title": "Nessuna sfida trovata"}]
 
 # Schermate
 class HomeScreen(Screen):
