@@ -5,6 +5,7 @@ package.name = jivory
 package.domain = org.jivory
 source.dir = .
 source.include_exts = py,png,jpg,json,kv
+source.include_patterns = challenges.json
 version = 0.1
 
 # Requisiti: ordinati e completi
