@@ -145,6 +145,9 @@ jobs:
             unzip \
             openjdk-17-jdk
 
+      - name: Clean previous build
+        run: buildozer android clean
+
       - name: Build with Buildozer
         run: |
           export ANDROIDSDK="$ANDROID_SDK_ROOT"
